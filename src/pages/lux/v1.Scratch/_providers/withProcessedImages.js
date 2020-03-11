@@ -2,7 +2,6 @@ import { reactive, computed } from "@vue/composition-api";
 export default function(experimentId, version, coverage) {
   const images = reactive({
     urls: {
-      scratch: [],
       confluence: computed(() => {
         const imgs = [];
         if (coverage) {
