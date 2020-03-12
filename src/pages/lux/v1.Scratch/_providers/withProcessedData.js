@@ -1,9 +1,10 @@
-import { reactive, watch } from "@vue/composition-api";
+import { reactive, watch, ref } from "@vue/composition-api";
 import axios from "axios";
 export default function(experimentId, version, endpoint) {
   const coverage = reactive({
     ids: [],
-    byId: {}
+    byId: {},
+    fetched: ref(false)
   });
 
   watch(
@@ -24,6 +25,7 @@ export default function(experimentId, version, endpoint) {
         coverage.ids.forEach(id => {
           coverage.byId[id] = data.data[id];
         });
+        coverage.fetched = true;
       })
       .catch();
   }

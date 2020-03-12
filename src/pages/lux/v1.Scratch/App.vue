@@ -8,7 +8,7 @@
             <lux2-video-player />
           </div>
           <div class="px-1 mb-2 w-full">
-            <coverage-graph v-if="false" />
+            <coverage-graph v-if="true" />
           </div>
           <div class="px-1 mb-2 w-full">
             <scratch-graph />

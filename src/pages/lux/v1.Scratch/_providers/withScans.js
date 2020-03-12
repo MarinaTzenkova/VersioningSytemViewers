@@ -5,6 +5,7 @@ export default function(experimentId, endpoint) {
   const timepoints = reactive({
     all: [],
     data: {},
+    fetched: ref(false),
     active: computed(() => {
       return timepoint.value;
     })
@@ -19,7 +20,6 @@ export default function(experimentId, endpoint) {
   );
 
   function setTimepoint(t) {
-    console.log(t);
     timepoint.value = t;
   }
 
@@ -33,6 +33,7 @@ export default function(experimentId, endpoint) {
         });
 
         timepoint.value = timepoints.all[0];
+        timepoints.fetched = true;
       })
       .catch();
   }

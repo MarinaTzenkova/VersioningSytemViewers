@@ -8,9 +8,9 @@ export default function(experimentId, version, timepoints, endpoint) {
   });
 
   watch(
-    () => ({ all: timepoints.all }),
-    ({ all }) => {
-      if (all) {
+    () => ({ all: timepoints.all, selected: version.selected }),
+    ({ all, selected }) => {
+      if (all && selected) {
         all.forEach(id => {
           // TODO: check if algorithm is passed
           // TODO: update input version
@@ -18,7 +18,7 @@ export default function(experimentId, version, timepoints, endpoint) {
             `${endpoint.lux2DataBlob}${experimentId}/original/default/images/${id}.jpg`
           );
           images.urls.Confluence.push(
-            `${endpoint.lux2DataBlob}${experimentId}/confluence/${version.selected}/images/${id}.jpg`
+            `${endpoint.lux2DataBlob}${experimentId}/confluence/${selected}/images/${id}.jpg`
           );
         });
       }

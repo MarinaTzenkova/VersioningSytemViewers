@@ -13,6 +13,7 @@
           :data="data"
           :y-label="'Cell coverage'"
           :color="'#00ff00'"
+          @setScan="setTimepoint"
         ></line-graph>
       </template>
     </collapsable-panel>
@@ -27,7 +28,7 @@ export default {
   components: { CollapsablePanel, LineGraph },
   setup() {
     const data = ref([]);
-    const { coverage, timepoints } = inject("data");
+    const { coverage, timepoints, setTimepoint } = inject("data");
     const scan = computed(() => timepoints.active);
     const scans = computed(() => timepoints.all);
     const yLimits = computed(() => {
@@ -55,7 +56,8 @@ export default {
       scan,
       scans,
       yLimits,
-      data
+      data,
+      setTimepoint
     };
   }
 };

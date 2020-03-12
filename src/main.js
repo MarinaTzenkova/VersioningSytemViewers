@@ -4,6 +4,7 @@ import PortalVue from "portal-vue";
 import VueCompositionApi from "@vue/composition-api";
 
 import "@/shared/css/main.sass";
+import "./globals/filters";
 const endpoints = require("./globals/endpoints");
 
 import router from "./router";

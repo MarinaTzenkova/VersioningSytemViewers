@@ -109,11 +109,10 @@ export default {
 
     watch(
       () => ({ value: speed.value }),
-      value => {
-        console.log(value);
+      ({ value }) => {
         value;
         if (isPlaying.value) {
-          clearInterval(videoTimeoutReference);
+          clearInterval(videoTimeoutReference.value);
           startPlaying();
         }
       }
@@ -140,9 +139,10 @@ export default {
       if (buffer.value.next === 0) {
         nextImage();
       }
+
       videoTimeoutReference.value = setInterval(() => {
         play();
-      }, speed);
+      }, speed.value);
     }
 
     function play() {
@@ -156,7 +156,7 @@ export default {
 
     function pause() {
       isPlaying.value = false;
-      clearInterval(videoTimeoutReference);
+      clearInterval(videoTimeoutReference.value);
     }
 
     function openImage() {}
