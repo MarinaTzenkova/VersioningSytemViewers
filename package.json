@@ -5,10 +5,13 @@
   "scripts": {
     "serve": "concurrently --kill-others \"node --max_old_space_size=5120 node_modules/@vue/cli-service/bin/vue-cli-service.js serve --open",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "generate-icons": "vsvg -s ./icons -t ./src/shared/components/svg-icons"
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "d3": "^5.15.0",
+    "portal-vue": "^2.1.7",
     "vue": "^2.6.11",
     "vue-router": "^3.1.6"
   },
@@ -34,6 +37,7 @@
     "raw-loader": "^4.0.0",
     "sass-loader": "^8.0.2",
     "tailwindcss": "^1.2.0",
+    "vue-svgicon": "^3.2.6",
     "vue-template-compiler": "^2.6.11"
   }
 }

@@ -1,6 +1,6 @@
 import { reactive, watch } from "@vue/composition-api";
 import axios from "axios";
-export default function(experimentId, version) {
+export default function(experimentId, version, endpoint) {
   const coverage = reactive({
     ids: [],
     byId: {}
@@ -9,7 +9,6 @@ export default function(experimentId, version) {
   watch(
     () => version,
     ({ selected }) => {
-      console.log(selected);
       if (selected) fetchJsonResults(selected);
     },
     { deep: true }
@@ -18,7 +17,7 @@ export default function(experimentId, version) {
   function fetchJsonResults(dataVersion) {
     axios
       .get(
-        `http://127.0.0.1:10000/devstoreaccount1/cache/${experimentId}/confluence/${dataVersion}/cache.json`
+        `${endpoint.lux2CacheBlob}${experimentId}/confluence/${dataVersion}/cache.json`
       )
       .then(({ data }) => {
         coverage.ids = Object.keys(data.data);

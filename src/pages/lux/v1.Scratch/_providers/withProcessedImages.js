@@ -1,20 +1,30 @@
-import { reactive, computed } from "@vue/composition-api";
-export default function(experimentId, version, coverage) {
+import { reactive, watch } from "@vue/composition-api";
+export default function(experimentId, version, timepoints, endpoint) {
   const images = reactive({
     urls: {
-      confluence: computed(() => {
-        const imgs = [];
-        if (coverage) {
-          coverage.ids.forEach(id => {
-            imgs.push(
-              `${experimentId}/confluence/${version.selected}/images/${id}.jpg`
-            );
-          });
-          return imgs;
-        }
-      })
+      Confluence: [],
+      Brightfield: []
     }
   });
+
+  watch(
+    () => ({ all: timepoints.all }),
+    ({ all }) => {
+      if (all) {
+        all.forEach(id => {
+          // TODO: check if algorithm is passed
+          // TODO: update input version
+          images.urls.Brightfield.push(
+            `${endpoint.lux2DataBlob}${experimentId}/original/default/images/${id}.jpg`
+          );
+          images.urls.Confluence.push(
+            `${endpoint.lux2DataBlob}${experimentId}/confluence/${version.selected}/images/${id}.jpg`
+          );
+        });
+      }
+    },
+    { deep: true }
+  );
 
   return {
     images
