@@ -29,7 +29,7 @@ export default function(experimentId, endpoint) {
       .then(({ data }) => {
         timepoints.all = Object.keys(data.data);
         timepoints.all.forEach(timepoint => {
-          timepoints.data[timepoint] = data.data[timepoint];
+          timepoints.data[timepoint] = data.data[timepoint].temperature;
         });
 
         timepoint.value = timepoints.all[0];

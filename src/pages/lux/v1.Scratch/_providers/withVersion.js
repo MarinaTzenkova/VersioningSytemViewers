@@ -5,7 +5,10 @@ import axios from "axios";
 //so maybe latest can move out in a more upper layer than algorithm specific?
 export default function(experimentId, version, endpoint) {
   const versionOfData = reactive({
-    selected: "",
+    selected: {
+      confluence: "",
+      scratch: ""
+    },
     algorithms: {
       confluence: false,
       scratch: false
@@ -15,24 +18,42 @@ export default function(experimentId, version, endpoint) {
     () => version,
     passedVersion => {
       if (passedVersion) {
-        versionOfData.selected = passedVersion;
-        versionOfData.algorithms.confluence = true;
+        if (passedVersion.includes("conf")) {
+          versionOfData.selected.confluence = passedVersion;
+          versionOfData.algorithms.confluence = true;
+        } else {
+          versionOfData.selected.scratch = passedVersion;
+          versionOfData.algorithms.scratch = true;
+        }
       } else {
-        fetchLatest();
+        fetchLatestConfluence();
+        fetchLatestScratch();
       }
     },
     { immediate: true }
   );
 
-  function fetchLatest() {
+  function fetchLatestConfluence() {
     axios
       .get(`${endpoint.lux2CacheBlob}${experimentId}/confluence/latest.json`)
       .then(({ data }) => {
         versionOfData.algorithms.confluence = true;
-        versionOfData.selected = data.data[experimentId]["latest"];
+        versionOfData.selected.confluence = data.data[experimentId]["latest"];
         // maybe there should be a smarter way of telling which algorithms
         // are being used, maybe when scans json is created and the algorithms
         // go in the versioning
+      })
+      .catch(e => {
+        console.log(e);
+      });
+  }
+
+  function fetchLatestScratch() {
+    axios
+      .get(`${endpoint.lux2CacheBlob}${experimentId}/scratch/latest.json`)
+      .then(({ data }) => {
+        versionOfData.algorithms.scratch = true;
+        versionOfData.selected.scratch = data.data[experimentId]["latest"];
       })
       .catch(e => {
         console.log(e);

@@ -31,20 +31,24 @@ export default {
     const { coverage, timepoints, setTimepoint } = inject("data");
     const scan = computed(() => timepoints.active);
     const scans = computed(() => timepoints.all);
+    const fetchedConfluence = computed(() => coverage.fetched);
     const yLimits = computed(() => {
       let yMin = 0;
       let yMax = 100;
       return { yMin, yMax, exponent: undefined };
     });
     watch(
-      () => coverage,
-      ({ byId }) => {
-        if (byId) {
+      () => fetchedConfluence,
+      fetched => {
+        if (coverage.byId && fetched) {
           scans.value.forEach(s => {
-            if (byId[s].coverage !== undefined && byId[s].coverage !== null)
+            if (
+              coverage.byId[s].coverage !== undefined &&
+              coverage.byId[s].coverage !== null
+            )
               data.value.push({
                 x: parseInt(s),
-                y: byId[s].coverage
+                y: coverage.byId[s].coverage
               });
           });
         }

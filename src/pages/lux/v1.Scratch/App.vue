@@ -5,19 +5,20 @@
       <div class="flex flex-wrap items-start">
         <div class="flex flex-wrap w-full lg:w-3/5">
           <div class="px-1 mb-2 w-full">
-            <lux2-video-player />
+            <lux2-video-player v-if="fetchedScans" />
           </div>
           <div class="px-1 mb-2 w-full">
-            <coverage-graph v-if="true" />
+            <coverage-graph v-if="fetchedConfluence && fetchedScans" />
           </div>
           <div class="px-1 mb-2 w-full">
-            <scratch-graph />
+            <scratch-graph v-if="fetchedScratch && fetchedScans" />
           </div>
           <div class="px-1 mb-2 w-full">
-            <temperature-graph />
+            <temperature-graph v-if="fetchedScans" />
           </div>
         </div>
         <div class="flex flex-wrap w-full lg:pl-4 lg:w-2/5">
+          <version-info-box />
           <!-- experiment data -->
           <!-- experiment notes -->
           <!-- experiment notifications -->
@@ -31,6 +32,8 @@
 <script>
 import setup from "./_providers/setup";
 import { provide, computed } from "@vue/composition-api";
+
+import VersionInfoBox from "./VersionInfoBox.vue";
 import CoverageGraph from "./wrappers/CoverageGraphWrapper.vue";
 import ScratchGraph from "./wrappers/ScratchGraphWrapper.vue";
 import TemperatureGraph from "./wrappers/TemperatureGraphWrapper.vue";
@@ -42,6 +45,7 @@ import BaseLayout from "@/shared/components/layout/BaseLayout.vue";
 
 export default {
   components: {
+    VersionInfoBox,
     CoverageGraph,
     ScratchGraph,
     TemperatureGraph,
@@ -57,7 +61,9 @@ export default {
     const version = root.$route.query.version;
     const endpoints = root.$endpoint;
     const state = setup(props.experimentId, version, endpoints);
-
+    const fetchedScans = computed(() => state.timepoints.fetched);
+    const fetchedConfluence = computed(() => state.coverage.fetched);
+    const fetchedScratch = computed(() => state.scratch.fetched);
     provide("data", state);
 
     const tab = computed(() => {
@@ -78,7 +84,15 @@ export default {
 
     //compute images per algorithm based on version or latest ?
 
-    return { tabs, algorithms, tab, setTab };
+    return {
+      tabs,
+      algorithms,
+      tab,
+      setTab,
+      fetchedConfluence,
+      fetchedScratch,
+      fetchedScans
+    };
   }
 };
 </script>

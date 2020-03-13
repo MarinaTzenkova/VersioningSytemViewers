@@ -22,7 +22,7 @@
           <div class="flex" v-if="fetchedScans">
             <div>Temperature:</div>
             <div class="font-bold ml-2">
-              {{ temperature[scan].temperature + " °C" }}
+              {{ temperature[scan] + " °C" }}
             </div>
           </div>
           <div class="flex">
@@ -43,6 +43,20 @@
               {{ confluence[scan].coverage | confluence }}
             </div>
           </div>
+          <div v-if="activeTab === 'Scratch' && fetchedScratch" class="flex">
+            <div>Area:</div>
+            <div
+              class="font-bold ml-2"
+              v-html="formatters.getScratchArea(scratch.byId[scan].area)"
+            />
+          </div>
+          <div v-if="fetchedScratch && activeTab === 'Scratch'" class="flex">
+            <div>Speed:</div>
+            <div
+              class="font-bold ml-2"
+              v-html="formatters.getScratchSpeed(scratch.byId[scan].speed)"
+            />
+          </div>
         </div>
       </template>
     </video-player>
@@ -53,10 +67,18 @@
 import { inject, computed } from "@vue/composition-api";
 //global components
 import VideoPlayer from "@/shared/components/videoPlayer/VideoPlayer.vue";
+import { dataFormatters } from "@/shared/utils";
 export default {
   components: { VideoPlayer },
   setup() {
-    const { images, timepoints, setTimepoint, tabs, coverage } = inject("data");
+    const {
+      images,
+      timepoints,
+      setTimepoint,
+      tabs,
+      coverage,
+      scratch
+    } = inject("data");
     const activeTab = computed(() => tabs.active);
     const snapshots = computed(() => images.urls[activeTab.value]);
     const scans = computed(() => timepoints.all);
@@ -66,7 +88,9 @@ export default {
     const confluence = computed(() => coverage.byId);
     const temperature = computed(() => timepoints.data);
     const fetchedConfluence = computed(() => coverage.fetched);
+    const fetchedScratch = computed(() => scratch.fetched);
     const fetchedScans = computed(() => timepoints.fetched);
+    const formatters = dataFormatters;
 
     function setScanIndex(index) {
       setTimepoint(scans.value[index]);
@@ -80,9 +104,12 @@ export default {
       setScanIndex,
       activeTab,
       confluence,
+      scratch,
       temperature,
       fetchedConfluence,
-      fetchedScans
+      fetchedScratch,
+      fetchedScans,
+      formatters
     };
   }
 };

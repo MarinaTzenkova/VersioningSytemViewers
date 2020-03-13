@@ -8,14 +8,16 @@ export default function(experimentId, version, endpoint) {
   });
 
   watch(
-    () => version,
-    ({ selected }) => {
-      if (selected) fetchJsonResults(selected);
+    () => ({
+      confluence: version.selected.confluence
+    }),
+    ({ confluence }) => {
+      if (confluence) fetchConfluenceJson(confluence);
     },
     { deep: true }
   );
 
-  function fetchJsonResults(dataVersion) {
+  function fetchConfluenceJson(dataVersion) {
     axios
       .get(
         `${endpoint.lux2CacheBlob}${experimentId}/confluence/${dataVersion}/cache.json`

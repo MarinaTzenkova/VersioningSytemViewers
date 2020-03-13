@@ -2,7 +2,7 @@ import { reactive, computed, ref, watch } from "@vue/composition-api";
 
 export default function(version) {
   // TODO: removing brightield for now
-  const tab = ref("Confluence");
+  const tab = ref("Brightield");
   const tabs = reactive({
     names: [],
     active: computed(() => {
@@ -12,14 +12,22 @@ export default function(version) {
 
   watch(
     () => version,
-    ({ algorithms }) => {
-      // tabs.names.push("Brightfield");
+    ({ algorithms, selected }) => {
+      if (!tabs.names.includes("Brightfield")) tabs.names.push("Brightfield");
 
-      if (algorithms.confluence) {
+      if (algorithms.confluence && !tabs.names.includes("Confluence")) {
         tabs.names.push("Confluence");
       }
       // TODO: add scratch
-      // if (algorithms.scratch) tabs.names.push("Scratch");
+      if (algorithms.scratch && !tabs.names.includes("Scratch")) {
+        tabs.names.push("Scratch");
+      }
+
+      if (selected.confluence != "" && selected.scratch != "") {
+        setTab("Brightfield");
+      } else if (selected.confluence != "") {
+        setTab("Confluence");
+      } else setTab("Scratch");
     },
     { deep: true, immediate: true }
   );
