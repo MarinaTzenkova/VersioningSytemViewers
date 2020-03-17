@@ -56,7 +56,13 @@ export default {
   watch: {
     images: {
       handler(images) {
-        if (images.Confluence && images.Scratch) {
+        if (
+          images.Confluence &&
+          images.Scratch &&
+          images.Brightfield &&
+          images.Red &&
+          images.Scratch
+        ) {
           this.gl.addTexture("u_base", images.Brightfield);
           this.gl.addTexture("u_red", images.Red);
           this.gl.addTexture("u_green", images.Green);

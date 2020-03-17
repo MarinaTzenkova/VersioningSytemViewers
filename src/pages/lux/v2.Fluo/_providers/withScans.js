@@ -20,7 +20,9 @@ export default function(experimentId, endpoint) {
   );
 
   function setTimepoint(t) {
+    console.log(t);
     timepoint.value = t;
+    console.log(timepoint.value, timepoints.active);
   }
 
   function fetchTimepointsAndTemperature(experimentId) {

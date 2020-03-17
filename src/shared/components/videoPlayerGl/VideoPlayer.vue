@@ -1,20 +1,20 @@
 <template>
   <div class="flex flex-col lg:flex-row w-full">
     <div class="w-full lg:w-4/6">
-      <collapsable-panel :collapsable="false">
+      <collapsable-panel :custom-class="'rounded-tl-none'" :collapsable="false">
         <template v-slot:head>
           Video
-          <!-- <speed-slider @speed-changed="setSpeed" /> -->
+          <speed-slider @speed-changed="speedChanged" />
           <slot name="head" />
         </template>
         <template #body>
           <div
+            v-if="render"
             id="image-container"
             ref="image-container"
             class="flex justify-center align-center relative"
           >
-            <video-player-display
-              v-if="imageElements"
+            <video-display
               :images="imageElements"
               :size="imageSize"
               :red-options="channelSettings.redOptions"
@@ -22,19 +22,27 @@
               :confluence-options="channelSettings.confluenceOptions"
               :base-options="channelSettings.brightfieldOptions"
             />
+            <!-- :scratch-options="scratchOptions" -->
           </div>
-          <div class="mt-3">
-            <!-- <video-controls
-              :is-playing="controls.isPlaying"
+          <div v-else class="flex justify-center items-center h-80 py-16">
+            KURA MI QJ
+          </div>
+
+          <div v-if="images.length > 1" class="mt-3">
+            <video-controls
+              :is-playing="isPlaying"
               :index="index"
               :indices="indices"
-              @startPlaying="startPlaying"
-              @pause="pause"
               @nextImage="nextImage"
               @previousImage="previousImage"
+              @startPlaying="startPlaying"
+              @pause="pause"
               @indexChanged="setIndex"
-            /> -->
+            />
           </div>
+        </template>
+        <template v-slot:footer>
+          <slot name="footer" />
         </template>
       </collapsable-panel>
     </div>
@@ -45,180 +53,202 @@
 </template>
 
 <script>
-import setup from "./_providers/setup";
-import { computed, watch, ref, reactive } from "@vue/composition-api";
-import { createImage, loadImage } from "@/shared/utils";
-import VideoPlayerDisplay from "./VIdeoDisplay.vue";
+import { loadImage, createImage } from "@/shared/utils";
 
-// global components
-import CollapsablePanel from "@/shared/components/layout/CollapsablePanel.vue";
-// import SpeedSlider from "@/shared/components/videoPlayer/SpeedSlider.vue";
-// import VideoControls from "@/shared/components/videoPlayer/VideoPlayerControls.vue";
+import CollapsablePanel from "@/shared/components/layout/CollapsablePanel";
+import VideoControls from "@/shared/components/videoPlayer/VideoPlayerControls.vue";
+import SpeedSlider from "@/shared/components/videoPlayer/SpeedSlider.vue";
+import VideoDisplay from "./VIdeoDisplay.vue";
+// import LoadingSpinner from "@/shared/components/loading/LoadingSpinner.vue";
+
 export default {
   components: {
     CollapsablePanel,
-    VideoPlayerDisplay
-    // SpeedSlider,
-    // VideoControls,
+    VideoControls,
+    SpeedSlider,
+    VideoDisplay
+    // LoadingSpinner
   },
   props: {
-    images: { type: Object, required: false },
-    index: { type: Number, required: false },
-    channels: { type: Object, required: false },
-    channelSettings: { type: Object, required: false },
-    tab: { type: String, required: false },
-    imageSize: { type: Array, required: false },
-    fetching: { type: Object, required: false }
+    images: { type: Array, required: true },
+    index: { type: Number, required: true },
+    channels: { type: Object, required: true },
+    channelSettings: { type: Object, required: true },
+    tab: { type: String, required: true },
+    imageSize: { type: Array, required: true }
   },
-  setup(props) {
-    const indices = computed(() => Object.keys(props.images.urls));
-    const chKeys = computed(() => Object.keys(props.channels.overlays));
-    const blank = ref({});
-    blank;
-    const imageElements = reactive({
-      Brightfield: null,
-      Red: null,
-      Green: null,
-      Scratch: null,
-      Confluence: null
-    });
-    watch(
-      () => props.images,
-      ({ urls }) => {
-        if (urls) {
-          createImages().then(() => {
-            cacheChannels().then(() => {
-              getImg();
-            });
+  data() {
+    return {
+      bSelected: true,
+      isPlaying: false,
+      videoTimeoutReference: 0,
+      speed: 0,
+      imageElements: {
+        Base: null,
+        Red: null,
+        Green: null,
+        Confluence: null,
+        Scratch: null
+      },
+      render: false
+    };
+  },
+  computed: {
+    buffer() {
+      let prev = 0;
+      let next = 0;
+
+      prev = this.prevIndex();
+      next = this.nextIndex();
+      return { prev, next };
+    },
+    indices() {
+      return Object.keys(this.images);
+    }
+  },
+  watch: {
+    channels: {
+      handler() {
+        if (this.images.length > 0) {
+          this.getImg();
+        }
+      },
+      deep: true
+    },
+    images() {
+      if (this.images.length > 0) {
+        this.createImages().then(() => {
+          this.render = true;
+          this.cacheChannels().then(() => {
+            this.getImg();
           });
-        }
-      },
-      { deep: true }
-    );
-
-    watch(
-      () => props.channels,
-      ({ overlays }) => {
-        overlays;
-        if (props.images.urls) {
-          getImg();
-        }
-      },
-      { deep: true }
-    );
-    const { buffer } = setup(props.index, indices);
-
-    function cacheChannels() {
+        });
+      }
+    },
+    index() {
+      this.cacheChannels().then(() => {
+        this.getImg();
+      });
+    },
+    speed() {
+      if (this.isPlaying) {
+        clearInterval(this.videoTimeoutReference);
+        this.startPlaying();
+      }
+    }
+  },
+  methods: {
+    getImg() {
+      this.getIndexImages().then(r => {
+        this.imageElements = r;
+      });
+    },
+    cacheChannels() {
       const reqs = [];
-      chKeys.value.forEach(channel => {
-        if (buffer.prev !== props.index) {
-          loadImage(props.images.urls[buffer.prev][channel])
-            .then(r => {
-              reqs.push(r);
+      const chKeys = Object.keys(this.channels);
+      chKeys.forEach(channel => {
+        if (this.buffer.prev !== this.index) {
+          loadImage(this.images[this.buffer.prev][channel])
+            .then(data => {
+              reqs.push(data);
             })
             .catch(() => {
-              reqs.push(blank);
+              reqs.push(this.blank);
             });
         }
-        if (buffer.next !== props.index) {
-          loadImage(props.images.urls[buffer.next][channel])
-            .then(r => {
-              reqs.push(r);
+        if (this.buffer.next !== this.index) {
+          loadImage(this.images[this.buffer.next][channel])
+            .then(data => {
+              reqs.push(data);
             })
             .catch(() => {
-              reqs.push(blank);
+              reqs.push(this.blank);
             });
         }
       });
       return Promise.all(reqs);
-    }
-
-    function createImages() {
+    },
+    startPlaying() {
+      this.isPlaying = true;
+      if (this.buffer.next === 0) {
+        this.nextImage();
+      }
+      this.videoTimeoutReference = setInterval(() => {
+        this.play();
+      }, this.speed);
+    },
+    play() {
+      if (this.buffer.next !== 0) {
+        this.cacheChannels().then(() => {
+          this.nextImage();
+        });
+      } else {
+        this.pause();
+      }
+    },
+    nextImage() {
+      this.setIndex(this.buffer.next);
+    },
+    previousImage() {
+      this.setIndex(this.buffer.prev);
+    },
+    setIndex(val) {
+      console.log(val);
+      this.$emit("indexChanged", +val);
+    },
+    prevIndex(index = this.index) {
+      return index === 0 ? this.images.length - 1 : index - 1;
+    },
+    nextIndex(index = this.index) {
+      return index === this.images.length - 1 ? 0 : index + 1;
+    },
+    getIndexImages() {
       return new Promise(res => {
-        blank.value = createImage(props.imageSize, [0, 0, 0, 0]);
-        imageElements.Brightfield = blank.value;
-        imageElements.Red = blank.value;
-        imageElements.Green = blank.value;
-        imageElements.Confluence = blank.value;
-        imageElements.Scratch = blank.value;
-
-        res();
-      });
-    }
-
-    function getIndexImages() {
-      return new Promise(res => {
+        const chKeys = Object.keys(this.channels);
         const resp = {};
         const resolve = () => {
           if (Object.keys(resp).length === 5) res(resp);
         };
 
-        chKeys.value.forEach(channel => {
-          if (props.channels.overlays[channel]) {
-            loadImage(props.images.urls[props.index][channel])
-              .then(r => {
-                resp[channel] = r;
+        chKeys.forEach(k => {
+          if (this.channels[k]) {
+            loadImage(this.images[this.index][k])
+              .then(data => {
+                resp[k] = data;
               })
               .catch(() => {
-                resp[channel] = blank.value;
+                resp[k] = this.blank;
               })
               .finally(() => {
                 resolve();
               });
           } else {
-            resp[channel] = blank.value;
+            resp[k] = this.blank;
             resolve();
           }
         });
       });
-    }
-
-    function getImg() {
-      getIndexImages().then(r => {
-        Object.keys(r).forEach(key => {
-          imageElements[key] = r[key];
-        });
+    },
+    pause() {
+      this.isPlaying = false;
+      clearInterval(this.videoTimeoutReference);
+    },
+    speedChanged(val) {
+      this.speed = val;
+    },
+    createImages() {
+      return new Promise(res => {
+        this.blank = createImage(this.imageSize, [0, 0, 0, 0]);
+        this.imageElements = {
+          Base: this.blank,
+          Red: this.blank,
+          Green: this.blank,
+          Confluence: this.blank,
+          Scratch: this.blank
+        };
+        res();
       });
     }
-
-    // function nextImage() {
-    //   setIndex(buffer.value.next);
-    // }
-
-    // function previousImage() {
-    //   setIndex(buffer.value.prev);
-    // }
-
-    // function setIndex(val) {
-    //   emit("indexChanged", val);
-    // }
-
-    // watch(
-    //   () => ({ value: speed }),
-    //   ({ value }) => {
-    //     value;
-    //     if (controls.isPlaying) {
-    //       clearInterval(controls.videoTimeoutReference);
-    //       startPlaying(nextImage, cacheChannels);
-    //     }
-    //   }
-    // );
-
-    createImages();
-    return {
-      indices,
-      imageElements,
-      chKeys
-      // setIndex,
-      // nextImage,
-      // previousImage,
-      // buffer,
-      // controls,
-      // setSpeed,
-      // startPlaying,
-      // pause,
-      // getIndexImages,
-    };
   }
 };
 </script>
@@ -234,5 +264,11 @@ export default {
     width: auto;
     height: auto;
   }
+}
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-column-gap: 0.5em;
+  grid-row-gap: 0.5em;
 }
 </style>

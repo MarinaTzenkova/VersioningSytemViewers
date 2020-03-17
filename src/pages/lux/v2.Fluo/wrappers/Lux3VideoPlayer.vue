@@ -1,13 +1,13 @@
 <template>
   <div>
     <video-player
-      v-if="images.urls && fetchedScans"
-      :images="images"
+      :images="snapshots"
       :index="scanIndex"
-      :channels="channels"
+      :channels="overlays"
       :channel-settings="settings"
       :tab="tab"
       :image-size="[640, 480]"
+      @indexChanged="setIndex($event)"
     >
       <template #head></template>
       <template #sidebar>
@@ -30,7 +30,14 @@ import VideoPlayer from "@/shared/components/videoPlayerGl/VideoPlayer.vue";
 export default {
   components: { VideoPlayer, SettingsWrapper, VersionBox },
   setup() {
-    const { channels, images, timepoints, tabs, settings } = inject("data");
+    const {
+      channels,
+      images,
+      timepoints,
+      tabs,
+      settings,
+      setTimepoint
+    } = inject("data");
 
     const tab = computed(() => tabs.active);
     const fetchedScans = computed(() => timepoints.fetched);
@@ -38,16 +45,25 @@ export default {
     const scan = computed(() => timepoints.active);
 
     const scanIndex = computed(() => scans.value.indexOf(scan.value));
+    const snapshots = computed(() => images.urls);
+    const overlays = computed(() => channels.overlays);
+    function setIndex(val) {
+      const id = scans.value[val];
+      setTimepoint(id);
+    }
 
     return {
       tab,
-      images,
+      snapshots,
       scans,
       scan,
       scanIndex,
       channels,
       fetchedScans,
-      settings
+      settings,
+      setTimepoint,
+      overlays,
+      setIndex
     };
   }
 };

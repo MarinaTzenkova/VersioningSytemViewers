@@ -9,14 +9,13 @@ export default function(index, indices) {
   // const { cacheChanngels, getIndexImages, createImages } = withImages();
   const { buffer } = withBuffer(index, indices);
   const { speed, setSpeed } = withSpeed();
-  const { controls, startPlaying, pause } = withVideoControls(speed, buffer);
+  const { controls, pause } = withVideoControls(speed, buffer);
 
   return {
     buffer,
     controls,
     setSpeed,
     speed,
-    startPlaying,
     pause
   };
 }

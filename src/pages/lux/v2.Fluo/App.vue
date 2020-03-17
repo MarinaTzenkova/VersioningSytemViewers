@@ -5,22 +5,13 @@
       <div class="flex flex-wrap items-start">
         <div class="flex flex-wrap w-full">
           <div class="px-1 mb-2 w-full">
-            <lux3-video-player v-if="fetchedScans" />
-            <!-- <div>Timepoints: {{ state.timepoints }}</div>
-            <div>Input: {{ state.input }}</div>
-            <div>Algorithms: {{ state.algorithms }}</div>
-            <div>Version: {{ state.versionOfData }}</div>
-            <div>Tabs: {{ state.tabs }}</div>
-            <div>Images: {{ state.images }}</div> -->
+            <lux3-video-player v-if="fetchedScans && fetchedImages" />
           </div>
           <div class="px-1 mb-2 w-full"></div>
           <div class="px-1 mb-2 w-full"></div>
           <div class="px-1 mb-2 w-full"></div>
         </div>
-        <div class="flex flex-wrap w-full lg:pl-4 lg:w-2/5">
-          <!-- channel settings -->
-          <!-- version info -->
-        </div>
+        <div class="flex flex-wrap w-full lg:pl-4 lg:w-2/5"></div>
       </div>
     </div>
   </base-layout>
@@ -28,7 +19,7 @@
 
 <script>
 import setup from "./_providers/setup";
-import { provide, computed } from "@vue/composition-api";
+import { provide, computed, ref, watch } from "@vue/composition-api";
 
 import Lux3VideoPlayer from "./wrappers/Lux3VideoPlayer.vue";
 
@@ -41,6 +32,7 @@ export default {
     experimentId: { type: String, required: true }
   },
   setup(props, { root }) {
+    const fetchedImages = ref(false);
     const { experimentId } = props;
     const version = root.$route.query.version;
     const endpoints = root.$endpoint;
@@ -65,8 +57,19 @@ export default {
       return state.metadata;
     });
 
+    watch(
+      () => ({ urls: state.images.urls }),
+      ({ urls }) => {
+        if (urls) {
+          fetchedImages.value = true;
+        }
+      },
+      { deep: true }
+    );
+
     return {
       fetchedScans,
+      fetchedImages,
       tab,
       tabs,
       setTab,
