@@ -33,6 +33,15 @@ const router = new Router({
           /* webpackChunkName: "lux2-results-page" */ "./pages/lux/v1.Scratch/App.vue"
         ),
       props: true
+    },
+    {
+      path: "/:experimentId/lux3",
+      name: "lux3",
+      component: () =>
+        import(
+          /* webpackChunkName: "lux3-results-page" */ "./pages/lux/v2.Fluo/App.vue"
+        ),
+      props: true
     }
   ]
 });

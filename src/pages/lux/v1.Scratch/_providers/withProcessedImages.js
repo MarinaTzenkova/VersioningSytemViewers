@@ -14,7 +14,7 @@ export default function(experimentId, version, timepoints, endpoint) {
       if (all) {
         all.forEach(id => {
           images.urls.Brightfield.push(
-            `${endpoint.lux2DataBlob}${experimentId}/original/default/images/${id}.jpg`
+            `${endpoint.lux2InputBlob}${experimentId}/brightfield/${id}.jpg`
           );
         });
       }

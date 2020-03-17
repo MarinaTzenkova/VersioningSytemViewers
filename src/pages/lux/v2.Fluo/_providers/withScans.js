@@ -3,8 +3,8 @@ import axios from "axios";
 export default function(experimentId, endpoint) {
   const timepoint = ref("");
   const timepoints = reactive({
-    all: [],
-    data: {},
+    ids: [],
+    temperature: {},
     fetched: ref(false),
     active: computed(() => {
       return timepoint.value;
@@ -27,12 +27,12 @@ export default function(experimentId, endpoint) {
     axios
       .get(`${endpoint.lux2InputBlob}${experimentId}/scans.json`)
       .then(({ data }) => {
-        timepoints.all = Object.keys(data.data);
-        timepoints.all.forEach(timepoint => {
-          timepoints.data[timepoint] = data.data[timepoint].temperature;
+        timepoints.ids = Object.keys(data.data);
+        timepoints.ids.forEach(timepoint => {
+          timepoints.temperature[timepoint] = data.data[timepoint].temperature;
         });
 
-        timepoint.value = timepoints.all[0];
+        timepoint.value = timepoints.ids[0];
         timepoints.fetched = true;
       })
       .catch();
