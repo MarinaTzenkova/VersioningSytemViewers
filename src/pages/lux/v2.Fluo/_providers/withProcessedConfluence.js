@@ -1,7 +1,8 @@
 import { reactive, watch, ref } from "@vue/composition-api";
 import axios from "axios";
+import Vue from "vue";
 export default function(experimentId, version, endpoint) {
-  const coverage = reactive({
+  const confluence = reactive({
     ids: [],
     byId: {},
     fetched: ref(false)
@@ -9,7 +10,7 @@ export default function(experimentId, version, endpoint) {
 
   watch(
     () => ({
-      confluence: version.selected.confluence
+      confluence: version.selected.Confluence
     }),
     ({ confluence }) => {
       if (confluence) fetchConfluenceJson(confluence);
@@ -23,16 +24,16 @@ export default function(experimentId, version, endpoint) {
         `${endpoint.lux2CacheBlob}${experimentId}/confluence/${dataVersion}/cache.json`
       )
       .then(({ data }) => {
-        coverage.ids = Object.keys(data.data);
-        coverage.ids.forEach(id => {
-          coverage.byId[id] = data.data[id];
+        confluence.ids = Object.keys(data.data);
+        confluence.ids.forEach(id => {
+          Vue.set(confluence.byId, id, data.data[id]);
         });
-        coverage.fetched = true;
+        confluence.fetched = true;
       })
       .catch();
   }
 
   return {
-    coverage
+    confluence
   };
 }

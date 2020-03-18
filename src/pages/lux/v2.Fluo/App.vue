@@ -7,9 +7,15 @@
           <div class="px-1 mb-2 w-full">
             <lux3-video-player v-if="fetchedScans && fetchedImages" />
           </div>
-          <div class="px-1 mb-2 w-full"></div>
-          <div class="px-1 mb-2 w-full"></div>
-          <div class="px-1 mb-2 w-full"></div>
+          <div class="w-full lg:w-4/6">
+            <div class="px-1 mb-2 w-full">
+              <confluence-graph v-if="fetchedConfluence" />
+            </div>
+            <div class="px-1 mb-2 w-full">
+              <scratch-graph v-if="fetchedScratch" />
+            </div>
+            <div class="px-1 mb-2 w-full"></div>
+          </div>
         </div>
         <div class="flex flex-wrap w-full lg:pl-4 lg:w-2/5"></div>
       </div>
@@ -22,12 +28,20 @@ import setup from "./_providers/setup";
 import { provide, computed, ref, watch } from "@vue/composition-api";
 
 import Lux3VideoPlayer from "./wrappers/Lux3VideoPlayer.vue";
+import ConfluenceGraph from "./wrappers/ConfluenceGraphWrapper.vue";
+import ScratchGraph from "./wrappers/ScratchGraphWrapper.vue";
 
 // global components
 import BaseLayout from "@/shared/components/layout/BaseLayout.vue";
 import TabComponent from "@/shared/components/layout/Tabs.vue";
 export default {
-  components: { BaseLayout, TabComponent, Lux3VideoPlayer },
+  components: {
+    BaseLayout,
+    TabComponent,
+    Lux3VideoPlayer,
+    ConfluenceGraph,
+    ScratchGraph
+  },
   props: {
     experimentId: { type: String, required: true }
   },
@@ -40,6 +54,8 @@ export default {
     provide("data", state);
 
     const fetchedScans = computed(() => state.timepoints.fetched);
+    const fetchedConfluence = computed(() => state.confluence.fetched);
+    const fetchedScratch = computed(() => state.scratch.fetched);
 
     const tab = computed(() => {
       return state.tabs.active;
@@ -70,6 +86,8 @@ export default {
     return {
       fetchedScans,
       fetchedImages,
+      fetchedScratch,
+      fetchedConfluence,
       tab,
       tabs,
       setTab,

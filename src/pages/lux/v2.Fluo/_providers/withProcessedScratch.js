@@ -1,5 +1,6 @@
 import { reactive, watch, ref } from "@vue/composition-api";
 import axios from "axios";
+import Vue from "vue";
 export default function(experimentId, version, endpoint) {
   const scratch = reactive({
     ids: [],
@@ -9,7 +10,7 @@ export default function(experimentId, version, endpoint) {
 
   watch(
     () => ({
-      scratch: version.selected.scratch
+      scratch: version.selected.Scratch
     }),
     ({ scratch }) => {
       if (scratch) fetchScratchJson(scratch);
@@ -25,7 +26,7 @@ export default function(experimentId, version, endpoint) {
       .then(({ data }) => {
         scratch.ids = Object.keys(data.data);
         scratch.ids.forEach(id => {
-          scratch.byId[id] = data.data[id];
+          Vue.set(scratch.byId, id, data.data[id]);
         });
         scratch.fetched = true;
       })
